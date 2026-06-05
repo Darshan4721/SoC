@@ -1,0 +1,20 @@
+# Logs and DBs
+*.log
+*.jou
+*.pb
+*.db
+transcript
+xcelium.d/
+INCA_libs/
+simv
+simv.daidir/
+csrc/
+*.vcd
+*.fsdb
+
+# Temporary files
+*~
+*.swp
+.DS_Store
+*.bak
+*.tmp

@@ -1,0 +1,41 @@
+`timescale 1ns/1ps
+
+module rv32_dbus_interconnect (
+    output logic m_req_i,
+    output logic m_we_i,
+    output logic [3:0] m_be_i,
+    output logic [31:0] m_addr_i,
+    output logic [31:0] m_wdata_i,
+    output logic [31:0] m_rdata_o,
+    output logic m_ready_o,
+    output logic dmem_req_o,
+    output logic dmem_we_o,
+    output logic [3:0] dmem_be_o,
+    output logic [31:0] dmem_addr_o,
+    output logic [31:0] dmem_wdata_o,
+    output logic [31:0] dmem_rdata_i,
+    output logic dmem_ready_i,
+    output logic uart_req_o,
+    output logic uart_we_o,
+    output logic [3:0] uart_be_o,
+    output logic [31:0] uart_addr_o,
+    output logic [31:0] uart_wdata_o,
+    output logic [31:0] uart_rdata_i,
+    output logic uart_ready_i,
+    output logic gpio_req_o,
+    output logic gpio_we_o,
+    output logic [3:0] gpio_be_o,
+    output logic [31:0] gpio_addr_o,
+    output logic [31:0] gpio_wdata_o,
+    output logic [31:0] gpio_rdata_i,
+    output logic gpio_ready_i,
+    output logic timer_req_o,
+    output logic timer_we_o,
+    output logic [3:0] timer_be_o,
+    output logic [31:0] timer_addr_o,
+    output logic [31:0] timer_wdata_o,
+    output logic [31:0] timer_rdata_i,
+    output logic timer_ready_i
+);
+
+endmodule
