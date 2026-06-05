@@ -33,7 +33,7 @@ module gpu_texture_l1 #(
     logic [43:0] tag;
     
     assign index = tex_req_uv[$clog2(LINES)-1:0];
-    assign tag   = tex_req_uv[31:32-44]; // Simplified tag from UV hash
+    assign tag   = {24'b0, tex_req_uv[31:12]}; // Simplified tag from UV hash
     
     logic hit;
     assign hit = cache_valid[index] && (cache_tags[index] == tag);
