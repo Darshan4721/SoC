@@ -95,33 +95,42 @@ module soc_top #(
     );
 
     // 2. The CPU Cluster (Instantiate 4 Cores)
-    genvar i;
     generate
-        for (i = 0; i < NUM_CORES; i++) begin : CORE_GEN
+        for (genvar i = 0; i < NUM_CORES; i++) begin : core_inst
+            
+            // Width adaptation wires to avoid port connection width warnings
+            logic [127:0] icache_rdata_128;
+            logic [63:0]  dcache_rdata_64;
+            logic [63:0]  dcache_wdata_64;
+            
+            assign icache_rdata_128 = m_axi_rdata[i*2][127:0];
+            assign dcache_rdata_64 = m_axi_rdata[i*2+1][63:0];
+            assign m_axi_wdata[i*2+1] = {192'b0, dcache_wdata_64};
+            
             rv64_core_top #(
-                .DATA_WIDTH(DATA_WIDTH),
+                .DATA_WIDTH(64),
                 .ADDR_WIDTH(ADDR_WIDTH)
             ) i_core (
                 .clk(sys_clk),
-                .rst_n(rst_n_core), // Wakes up last
+                .rst_n(rst_n_core),
                 .meip(meip),
                 .mtip(mtime_irq),
-                .msip(1'b0), // Inter-processor interrupts ignored for structural tie-off
+                .msip(1'b0),
                 
                 // I-Cache Bus -> NoC Master Port (i*2)
                 .m_axi_icache_arvalid(m_axi_arvalid[i*2]), .m_axi_icache_araddr(m_axi_araddr[i*2]),
                 .m_axi_icache_arlen(m_axi_arlen[i*2]),     .m_axi_icache_arready(m_axi_arready[i*2]),
-                .m_axi_icache_rvalid(m_axi_rvalid[i*2]),   .m_axi_icache_rdata(m_axi_rdata[i*2][127:0]),
+                .m_axi_icache_rvalid(m_axi_rvalid[i*2]),   .m_axi_icache_rdata(icache_rdata_128),
                 .m_axi_icache_rlast(m_axi_rlast[i*2]),     .m_axi_icache_rready(m_axi_rready[i*2]),
                 
                 // D-Cache Bus -> NoC Master Port (i*2 + 1)
                 .m_axi_dcache_arvalid(m_axi_arvalid[i*2+1]), .m_axi_dcache_araddr(m_axi_araddr[i*2+1]),
                 .m_axi_dcache_arlen(m_axi_arlen[i*2+1]),     .m_axi_dcache_arready(m_axi_arready[i*2+1]),
-                .m_axi_dcache_rvalid(m_axi_rvalid[i*2+1]),   .m_axi_dcache_rdata(m_axi_rdata[i*2+1][63:0]),
+                .m_axi_dcache_rvalid(m_axi_rvalid[i*2+1]),   .m_axi_dcache_rdata(dcache_rdata_64),
                 .m_axi_dcache_rlast(m_axi_rlast[i*2+1]),     .m_axi_dcache_rready(m_axi_rready[i*2+1]),
                 .m_axi_dcache_awvalid(m_axi_awvalid[i*2+1]), .m_axi_dcache_awaddr(m_axi_awaddr[i*2+1]),
                 .m_axi_dcache_awready(m_axi_awready[i*2+1]), .m_axi_dcache_awlen(m_axi_awlen[i*2+1]),
-                .m_axi_dcache_wvalid(m_axi_wvalid[i*2+1]),   .m_axi_dcache_wdata(m_axi_wdata[i*2+1][63:0]),
+                .m_axi_dcache_wvalid(m_axi_wvalid[i*2+1]),   .m_axi_dcache_wdata(dcache_wdata_64),
                 .m_axi_dcache_wstrb(), .m_axi_dcache_wlast(m_axi_wlast[i*2+1]), .m_axi_dcache_wready(m_axi_wready[i*2+1]),
                 .m_axi_dcache_bvalid(m_axi_bvalid[i*2+1]),   .m_axi_dcache_bready(m_axi_bready[i*2+1])
             );
