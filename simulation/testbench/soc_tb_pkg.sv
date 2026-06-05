@@ -9,9 +9,9 @@ package soc_tb_pkg;
     typedef class soc_base_test;
 
     // Environment
-    `include "soc_env.sv"
+    `include "soc_env.svh"
     
     // Tests
-    `include "soc_base_test.sv"
+    `include "soc_base_test.svh"
 
 endpackage
