@@ -73,9 +73,9 @@ module reservation_station_alu_1 #(
     carry_lookahead_adder_64 i_alu1 (
         .a(issue_val1),
         .b(issue_val2),
-        .cin(1'b0),
+        .c_in(1'b0),
         .sum(alu_out),
-        .cout()
+        .c_out()
     );
 
     // Simple 1-cycle pipeline for ALU

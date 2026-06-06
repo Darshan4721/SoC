@@ -44,10 +44,8 @@ module l1_icache_ctrl #(
         .index(tag_idx),
         .wtag(tag_wdata),
         .wvalid(tag_wval),
-        .wdirty(tag_wdirty),
         .rtag(tag_rdata),
-        .rvalid(tag_rval),
-        .rdirty(tag_rdirty)
+        .rvalid(tag_rval)
     );
     
     logic                     data_we;

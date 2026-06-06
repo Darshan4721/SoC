@@ -71,11 +71,9 @@ module reservation_station_mul #(
     // Execution Unit Instance (MUL)
     logic [127:0] mul_out;
     wallace_tree_mult_64 i_multiplier (
-        .clk(clk),
-        .rst_n(rst_n),
         .a(issue_val1),
         .b(issue_val2),
-        .p(mul_out) // Pipelined output
+        .prod(mul_out) // Combinational output
     );
 
     // Pipeline match for Multiplier (Assume 4 cycle latency in the Wallace Tree)
