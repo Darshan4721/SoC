@@ -40,7 +40,7 @@ module fpu_dispatch_queue #(
     
     assign queue_ready = (count < DEPTH);
     
-    assign issue_val   = (count > 0);
+    assign issue_val   = valid_arr[head] && (count > 0);
     assign issue_instr = instr_arr[head];
     assign issue_fd    = fd_arr[head];
     assign issue_fs1   = fs1_arr[head];

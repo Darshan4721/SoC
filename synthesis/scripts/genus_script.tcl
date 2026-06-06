@@ -73,4 +73,5 @@ report_clock_gating      > ../reports/clock/${TOP_MODULE}_clock_gating.rpt
 report_design_rules      > ../reports/constraints/${TOP_MODULE}_design_rules.rpt
 
 puts "--- Synthesis Finished Successfully ---"
-exit
+
+gui_show

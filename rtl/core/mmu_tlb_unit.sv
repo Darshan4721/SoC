@@ -64,8 +64,14 @@ module mmu_tlb_unit #(
     
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            for (int i=0; i<TLB_ENTRIES; i++) valid_arr[i] <= 1'b0;
-            // Note: OS/Hardware Page Table Walker (PTW) logic would populate these entries
+            for (int i=0; i<TLB_ENTRIES; i++) begin
+                valid_arr[i] <= 1'b0;
+                vpn_array[i] <= '0;
+                ppn_array[i] <= '0;
+            end
+        end else begin
+            // Note: OS/Hardware Page Table Walker (PTW) logic would populate these entries here
+            // This prevents synthesis from inferring a latch for incomplete assignments
         end
     end
 

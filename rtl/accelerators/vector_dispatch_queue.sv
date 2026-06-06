@@ -40,7 +40,7 @@ module vector_dispatch_queue #(
     
     assign queue_ready = (count < DEPTH);
     
-    assign issue_val   = (count > 0);
+    assign issue_val   = valid_arr[head] && (count > 0);
     assign issue_instr = instr_arr[head];
     assign issue_vd    = vd_arr[head];
     assign issue_vs1   = vs1_arr[head];
