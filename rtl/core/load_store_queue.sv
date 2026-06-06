@@ -54,8 +54,8 @@ module load_store_queue #(
     always_comb begin
         found_ready = 1'b0;
         issue_idx = '0;
-        for (int i = 0; i < DEPTH; i++) begin
-            if (valid_array[i] && rs1_rdy_arr[i] && (rs2_rdy_arr[i] || !is_store_arr[i]) && !found_ready) begin
+        for (int i = DEPTH-1; i >= 0; i--) begin
+            if (valid_array[i] && rs1_rdy_arr[i] && (rs2_rdy_arr[i] || !is_store_arr[i])) begin
                 found_ready = 1'b1;
                 issue_idx = i[$clog2(DEPTH)-1:0];
             end

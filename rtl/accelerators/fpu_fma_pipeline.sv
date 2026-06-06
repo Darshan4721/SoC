@@ -20,63 +20,61 @@ module fpu_fma_pipeline #(
     input  logic                  res_ready
 );
 
-    // IEEE-754 Fused Multiply-Add (FMA): computes (A * B) + C with a single rounding step.
-    // This is a structurally modeled 4-stage pipeline representation.
-    // Real FMA requires deep mantissa alignment, a 106-bit multiplier, and a massive LZA (Leading Zero Anticipator).
+    // =========================================================================
+    // FPU FMA PIPELINE
+    // Instantiates the structural fp64 and fp32 primitives based on BOM
+    // =========================================================================
+
+    logic [63:0] mac64_out;
+    logic [31:0] mac32_out;
     
-    // Pipeline Registers
-    // Stage 1: Unpack and align
-    logic        s1_val;
-    logic [63:0] s1_a, s1_b, s1_c;
+    // Check if the opcode requests a 32-bit (Single) or 64-bit (Double) operation
+    // Simplified decode: RV64F/D uses bits 26:25 to denote precision (e.g., 00=Single, 01=Double)
+    logic is_double;
+    assign is_double = (opcode[26:25] == 2'b01);
     
-    // Stage 2: Multiply
-    logic        s2_val;
-    logic [63:0] s2_c;
-    // Simulated multiplier output (in real FP, this is a 106-bit mantissa product)
-    logic [127:0] s2_prod; 
+    // Stall/Backpressure logic
+    // FMA IP cores are typically fixed latency. We use a shift register for the valid signal.
+    // Assuming 4-cycle latency based on the primitive definitions.
+    logic [3:0] valid_shift;
+    logic [3:0] is_double_shift; // Track precision through the pipeline
     
-    // Stage 3: Add
-    logic        s3_val;
-    logic [127:0] s3_sum;
-    
-    // Stage 4: Normalize & Round (Output)
-    
-    // Backpressure logic: stall if output is stalled
     logic stall;
     assign stall = res_val && !res_ready;
     assign issue_ready = !stall;
     
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            s1_val <= 1'b0;
-            s2_val <= 1'b0;
-            s3_val <= 1'b0;
-            res_val <= 1'b0;
+            valid_shift <= '0;
+            is_double_shift <= '0;
             fflags <= '0;
         end else if (!stall) begin
-            // Stage 1: Capture
-            s1_val <= issue_val;
-            s1_a <= fs1_data;
-            s1_b <= fs2_data;
-            s1_c <= fs3_data;
-            
-            // Stage 2: Multiply
-            s2_val <= s1_val;
-            s2_c <= s1_c;
-            // Structural mock for FP multiplier
-            s2_prod <= {64'h0, s1_a} * {64'h0, s1_b}; 
-            
-            // Stage 3: Add
-            s3_val <= s2_val;
-            s3_sum <= s2_prod + {64'h0, s2_c};
-            
-            // Stage 4: Result (Structural mock for Normalization/Rounding)
-            res_val <= s3_val;
-            if (s3_val) begin
-                res_data <= s3_sum[DATA_WIDTH-1:0]; // Simplified extraction
-                fflags <= 5'b00000; // No exceptions in this mock
-            end
+            valid_shift <= {valid_shift[2:0], issue_val};
+            is_double_shift <= {is_double_shift[2:0], is_double};
         end
     end
+    
+    assign res_val = valid_shift[3];
+    assign res_data = is_double_shift[3] ? mac64_out : {32'h0, mac32_out};
+
+    // 1. FP64 Fused MAC (Double Precision)
+    fp64_fused_mac i_fp64_mac (
+        .clk(clk),
+        .rst_n(rst_n),
+        .a(fs1_data),
+        .b(fs2_data),
+        .c(fs3_data),
+        .out(mac64_out)
+    );
+
+    // 2. FP32 Fused MAC (Single Precision)
+    fp32_fused_mac i_fp32_mac (
+        .clk(clk),
+        .rst_n(rst_n),
+        .a(fs1_data[31:0]),
+        .b(fs2_data[31:0]),
+        .c(fs3_data[31:0]),
+        .out(mac32_out)
+    );
 
 endmodule

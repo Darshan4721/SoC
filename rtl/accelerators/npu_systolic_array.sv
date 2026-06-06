@@ -67,9 +67,15 @@ module npu_systolic_array #(
                     end
                 end
                 
-                // The MAC Operation (Simulated FP16 MAC using standard integer syntax for structural validation)
-                // act_wire[r][c+1] gets act_wire[r][c] (shifted right)
-                // psum_wire[r+1][c] gets psum_wire[r][c] + (act * weight) (shifted down)
+                // Structural Multiplier Instance (256x unrolled in this grid)
+                logic signed [15:0] mult_out;
+                int8_multiplier i_mac_mult (
+                    .a(act_wire[r][c][7:0]), // Downcast to INT8 for the hardware multiplier
+                    .b(weight_reg[r][c][7:0]),
+                    .prod(mult_out)
+                );
+                
+                // The MAC Operation Accumulator
                 always_ff @(posedge clk or negedge rst_n) begin
                     if (!rst_n) begin
                         act_wire[r][c+1]  <= '0;
@@ -78,8 +84,8 @@ module npu_systolic_array #(
                         // Pass activation horizontally
                         act_wire[r][c+1] <= act_wire[r][c];
                         
-                        // Multiply & Accumulate vertically
-                        psum_wire[r+1][c] <= psum_wire[r][c] + (act_wire[r][c] * weight_reg[r][c]);
+                        // Accumulate vertically (Sign extend the 16-bit product to DATA_WIDTH)
+                        psum_wire[r+1][c] <= psum_wire[r][c] + $signed(mult_out);
                     end
                 end
                 
