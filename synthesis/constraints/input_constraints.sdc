@@ -3,6 +3,10 @@
 # Target frequency: 50 MHz reference clock, assuming PLLs handle high-speed internally
 # ==============================================================================
 
+# IMPORTANT: Explicitly set the top-level design context for Genus
+# Since we elaborated 600+ modules, Genus needs to know the root of the constraint tree.
+current_design soc_top
+
 # 1. Clock Definitions
 # Define a 50 MHz reference clock (Period = 20 ns)
 create_clock -name ref_clk -period 20.0 [get_ports ref_clk]
@@ -50,6 +54,14 @@ set_false_path -from [get_ports i2c_sda_i]
 set_false_path -from [get_ports i2c_scl_i]
 set_false_path -to   [get_ports i2c_sda_o]
 set_false_path -to   [get_ports i2c_scl_o]
+
+# SPI interfaces operate asynchronously or at divided clocks
+set_false_path -from [get_ports spi_miso]
+set_false_path -to   [get_ports {spi_mosi spi_sck spi_cs_n}]
+
+# PCIe PIPE interfaces connect to external SerDes PHYs running on recovered clocks
+set_false_path -from [get_ports pipe_rx_*]
+set_false_path -to   [get_ports pipe_tx_*]
 
 # ==============================================================================
 # End of SDC File
