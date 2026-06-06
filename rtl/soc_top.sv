@@ -171,21 +171,15 @@ module soc_top #(
     // 4. ACCELERATORS (Masters 8, 9, 10)
     // =========================================================================
     // Master 8: GPU
-    logic [31:0] gpu_araddr, gpu_awaddr, gpu_rdata, gpu_wdata;
-    assign m_axi_araddr[8] = {32'b0, gpu_araddr};
-    assign m_axi_awaddr[8] = {32'b0, gpu_awaddr};
-    assign gpu_rdata = m_axi_rdata[8][31:0];
-    assign m_axi_wdata[8] = {224'b0, gpu_wdata};
-    assign m_axi_arlen[8] = 8'd0;
     assign m_axi_awlen[8] = 8'd0;
     assign m_axi_wlast[8] = 1'b1;
 
     gpu_subsystem_top i_gpu (
         .clk(sys_clk), .rst_n(rst_n_accel),
-        .m_axi_arvalid(m_axi_arvalid[8]), .m_axi_araddr(gpu_araddr), .m_axi_arlen(), .m_axi_arready(m_axi_arready[8]),
-        .m_axi_rvalid(m_axi_rvalid[8]),   .m_axi_rdata(gpu_rdata),   .m_axi_rlast(m_axi_rlast[8]), .m_axi_rready(m_axi_rready[8]),
-        .m_axi_awvalid(m_axi_awvalid[8]), .m_axi_awaddr(gpu_awaddr), .m_axi_awready(m_axi_awready[8]),
-        .m_axi_wvalid(m_axi_wvalid[8]),   .m_axi_wdata(gpu_wdata),   .m_axi_wready(m_axi_wready[8]),
+        .m_axi_arvalid(m_axi_arvalid[8]), .m_axi_araddr(m_axi_araddr[8]), .m_axi_arlen(m_axi_arlen[8]), .m_axi_arready(m_axi_arready[8]),
+        .m_axi_rvalid(m_axi_rvalid[8]),   .m_axi_rdata(m_axi_rdata[8]),   .m_axi_rlast(m_axi_rlast[8]), .m_axi_rready(m_axi_rready[8]),
+        .m_axi_awvalid(m_axi_awvalid[8]), .m_axi_awaddr(m_axi_awaddr[8]), .m_axi_awready(m_axi_awready[8]),
+        .m_axi_wvalid(m_axi_wvalid[8]),   .m_axi_wdata(m_axi_wdata[8]),   .m_axi_wready(m_axi_wready[8]),
         // Ties for unused
         .s_axi_awvalid(1'b0), .s_axi_awaddr('0), .s_axi_awready(), .s_axi_wvalid(1'b0), .s_axi_wdata('0),
         .s_axi_wstrb('0), .s_axi_wready(), .s_axi_bvalid(), .s_axi_bresp(), .s_axi_bready(1'b1), .s_axi_arvalid(1'b0), .s_axi_araddr('0),
