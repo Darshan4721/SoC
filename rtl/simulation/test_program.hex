@@ -1,0 +1,40 @@
+// RISC-V 64-bit Hex Memory Initialization File
+// This file can be loaded into simulation memory using $readmemh()
+// Memory mapped addresses:
+// 0x20000000 : GPU Subsystem Command Queue
+// 0x30000000 : NPU Subsystem Command Queue
+// 0x40000000 : Vector Subsystem Control
+// 0x50000000 : Video Media Subsystem Control
+
+00500093 // ADDI x1, x0, 5       -> CPU: Load 5 into register x1
+00a00113 // ADDI x2, x0, 10      -> CPU: Load 10 into register x2
+002081b3 // ADD x3, x1, x2       -> CPU: Add x1 + x2. Result in x3 = 15
+
+// ---------------------------------------------------------
+// GPU Test: Write value 15 to the GPU Base Address
+// ---------------------------------------------------------
+20000237 // LUI x4, 0x20000      -> Load Upper Immediate (0x2000_0000) into x4
+00322023 // SW x3, 0(x4)         -> Store Word: Write x3 (15) to memory at address in x4
+
+// ---------------------------------------------------------
+// NPU Test: Write value 15 to the NPU Base Address
+// ---------------------------------------------------------
+300002b7 // LUI x5, 0x30000      -> Load Upper Immediate (0x3000_0000) into x5
+0032a023 // SW x3, 0(x5)         -> Store Word: Write x3 (15) to memory at address in x5
+
+// ---------------------------------------------------------
+// Vector Subsystem Test: Write value 15 to Vector Base Address
+// ---------------------------------------------------------
+40000337 // LUI x6, 0x40000      -> Load Upper Immediate (0x4000_0000) into x6
+00332023 // SW x3, 0(x6)         -> Store Word: Write x3 (15) to memory at address in x6
+
+// ---------------------------------------------------------
+// Video Media Subsystem Test: Write value 15 to Video Base
+// ---------------------------------------------------------
+500003b7 // LUI x7, 0x50000      -> Load Upper Immediate (0x5000_0000) into x7
+0033a023 // SW x3, 0(x7)         -> Store Word: Write x3 (15) to memory at address in x7
+
+// ---------------------------------------------------------
+// Halt Execution: Infinite Loop
+// ---------------------------------------------------------
+0000006f // JAL x0, 0            -> Jump and Link to self (infinite loop)
