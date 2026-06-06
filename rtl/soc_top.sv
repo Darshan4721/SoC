@@ -182,14 +182,14 @@ module soc_top #(
 
     gpu_subsystem_top i_gpu (
         .clk(sys_clk), .rst_n(rst_n_accel),
-        .m_axi_arvalid(m_axi_arvalid[8]), .m_axi_araddr(gpu_araddr), .m_axi_arready(m_axi_arready[8]),
-        .m_axi_rvalid(m_axi_rvalid[8]),   .m_axi_rdata(gpu_rdata),   .m_axi_rready(m_axi_rready[8]),
+        .m_axi_arvalid(m_axi_arvalid[8]), .m_axi_araddr(gpu_araddr), .m_axi_arlen(), .m_axi_arready(m_axi_arready[8]),
+        .m_axi_rvalid(m_axi_rvalid[8]),   .m_axi_rdata(gpu_rdata),   .m_axi_rlast(m_axi_rlast[8]), .m_axi_rready(m_axi_rready[8]),
         .m_axi_awvalid(m_axi_awvalid[8]), .m_axi_awaddr(gpu_awaddr), .m_axi_awready(m_axi_awready[8]),
         .m_axi_wvalid(m_axi_wvalid[8]),   .m_axi_wdata(gpu_wdata),   .m_axi_wready(m_axi_wready[8]),
         // Ties for unused
-        .s_axi_awvalid(1'b0), .s_axi_awaddr('0), .s_axi_wvalid(1'b0), .s_axi_wdata('0),
-        .s_axi_wstrb('0), .s_axi_bready(1'b1), .s_axi_arvalid(1'b0), .s_axi_araddr('0),
-        .s_axi_rready(1'b1)
+        .s_axi_awvalid(1'b0), .s_axi_awaddr('0), .s_axi_awready(), .s_axi_wvalid(1'b0), .s_axi_wdata('0),
+        .s_axi_wstrb('0), .s_axi_wready(), .s_axi_bvalid(), .s_axi_bresp(), .s_axi_bready(1'b1), .s_axi_arvalid(1'b0), .s_axi_araddr('0),
+        .s_axi_arready(), .s_axi_rvalid(), .s_axi_rdata(), .s_axi_rresp(), .s_axi_rready(1'b1)
     );
 
     // Master 9: NPU
@@ -198,9 +198,10 @@ module soc_top #(
         .m_axi_arvalid(m_axi_arvalid[9]), .m_axi_araddr(m_axi_araddr[9]), .m_axi_arlen(m_axi_arlen[9]), .m_axi_arready(m_axi_arready[9]),
         .m_axi_rvalid(m_axi_rvalid[9]),   .m_axi_rdata(m_axi_rdata[9]),   .m_axi_rlast(m_axi_rlast[9]),   .m_axi_rready(m_axi_rready[9]),
         // NPU specific ties
-        .s_axi_awvalid(1'b0), .s_axi_awaddr('0), .s_axi_wvalid(1'b0), .s_axi_wdata('0),
-        .s_axi_wstrb('0), .s_axi_bready(1'b1), .s_axi_arvalid(1'b0), .s_axi_araddr('0),
-        .s_axi_rready(1'b1), .act_in_valid(1'b0), .act_in_data('0), .act_out_ready(1'b1)
+        .s_axi_awvalid(1'b0), .s_axi_awaddr('0), .s_axi_awready(), .s_axi_wvalid(1'b0), .s_axi_wdata('0), .s_axi_wready(),
+        .s_axi_wstrb('0), .s_axi_bvalid(), .s_axi_bresp(), .s_axi_bready(1'b1), .s_axi_arvalid(1'b0), .s_axi_araddr('0), .s_axi_arready(),
+        .s_axi_rvalid(), .s_axi_rdata(), .s_axi_rresp(), .s_axi_rready(1'b1), 
+        .act_in_valid(1'b0), .act_in_data('0), .act_in_ready(), .act_out_valid(), .act_out_data(), .act_out_ready(1'b1)
     );
     
     assign m_axi_awvalid[9] = 1'b0;
@@ -249,7 +250,11 @@ module soc_top #(
     // 5. SLAVES (Memory & IO)
     // =========================================================================
     // Slave 0: DDR4 Memory Controller
-    memory_subsystem_top i_memory_subsystem (
+    memory_subsystem_top #(
+        .NUM_MASTERS(1),
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .DATA_WIDTH(DATA_WIDTH)
+    ) i_memory_subsystem (
         .clk(sys_clk), .rst_n(rst_n_mem),
         .s_axi_arvalid(s_axi_arvalid[0]), .s_axi_araddr(s_axi_araddr[0]), .s_axi_arlen(s_axi_arlen[0]), .s_axi_arready(s_axi_arready[0]),
         .s_axi_rvalid(s_axi_rvalid[0]),   .s_axi_rdata(s_axi_rdata[0]),   .s_axi_rlast(s_axi_rlast[0]), .s_axi_rready(s_axi_rready[0]),
@@ -263,20 +268,26 @@ module soc_top #(
     );
 
     // Slave 1: IO Subsystem
+    logic [31:0] io_s_axi_rdata;
+    assign s_axi_rdata[1] = {224'b0, io_s_axi_rdata};
+    assign s_axi_rlast[1] = 1'b1;
+
     io_subsystem_top i_io_subsystem (
         .clk(sys_clk), .rst_n(rst_n_periph),
-        .s_axi_arvalid(s_axi_arvalid[1]), .s_axi_araddr(s_axi_araddr[1]), .s_axi_arready(s_axi_arready[1]),
-        .s_axi_rvalid(s_axi_rvalid[1]),   .s_axi_rdata(s_axi_rdata[1]),   .s_axi_rready(s_axi_rready[1]),
-        .s_axi_awvalid(s_axi_awvalid[1]), .s_axi_awaddr(s_axi_awaddr[1]), .s_axi_awready(s_axi_awready[1]),
-        .s_axi_wvalid(s_axi_wvalid[1]),   .s_axi_wdata(s_axi_wdata[1]),   .s_axi_wstrb(4'hf), .s_axi_wready(s_axi_wready[1]),
-        .s_axi_bvalid(s_axi_bvalid[1]),   .s_axi_bready(s_axi_bready[1]),
+        .s_axi_arvalid(s_axi_arvalid[1]), .s_axi_araddr(s_axi_araddr[1][31:0]), .s_axi_arready(s_axi_arready[1]),
+        .s_axi_rvalid(s_axi_rvalid[1]),   .s_axi_rdata(io_s_axi_rdata),   .s_axi_rresp(), .s_axi_rready(s_axi_rready[1]),
+        .s_axi_awvalid(s_axi_awvalid[1]), .s_axi_awaddr(s_axi_awaddr[1][31:0]), .s_axi_awready(s_axi_awready[1]),
+        .s_axi_wvalid(s_axi_wvalid[1]),   .s_axi_wdata(s_axi_wdata[1][31:0]),   .s_axi_wstrb(4'hf), .s_axi_wready(s_axi_wready[1]),
+        .s_axi_bvalid(s_axi_bvalid[1]),   .s_axi_bresp(), .s_axi_bready(s_axi_bready[1]),
         .meip(), .mtime_irq(mtime_irq), // meip left unconnected here since PLIC handles it
         .uart_tx_pad(uart_tx_pad), .uart_rx_pad(uart_rx_pad),
         .spi_sck(spi_sck), .spi_mosi(spi_mosi), .spi_miso(spi_miso), .spi_cs_n(spi_cs_n),
         .i2c_scl_o(i2c_scl_o), .i2c_sda_o(i2c_sda_o), .i2c_scl_i(i2c_scl_i), .i2c_sda_i(i2c_sda_i),
         .pipe_tx_data(pipe_tx_data), .pipe_tx_datak(pipe_tx_datak), .pipe_rx_data(pipe_rx_data), .pipe_rx_datak(pipe_rx_datak),
-        .m_axi_pcie_arready(1'b1), .m_axi_pcie_rvalid(1'b0), .m_axi_pcie_rdata('0),
-        .m_axi_pcie_awready(1'b1), .m_axi_pcie_wready(1'b1)
+        .m_axi_pcie_arvalid(), .m_axi_pcie_araddr(), .m_axi_pcie_arready(1'b1),
+        .m_axi_pcie_rvalid(1'b0), .m_axi_pcie_rdata('0), .m_axi_pcie_rready(),
+        .m_axi_pcie_awvalid(), .m_axi_pcie_awaddr(), .m_axi_pcie_awready(1'b1),
+        .m_axi_pcie_wvalid(), .m_axi_pcie_wdata(), .m_axi_pcie_wready(1'b1)
     );
 
 endmodule

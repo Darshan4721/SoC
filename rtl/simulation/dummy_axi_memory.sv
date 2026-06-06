@@ -118,7 +118,7 @@ module dummy_axi_memory #(
     always_comb begin
         for (int i=0; i<(DATA_WIDTH/8); i++) begin
             if ((r_addr_reg + i) < MEM_SIZE)
-                s_axi_rdata[i*8 +: 8] = mem[r_addr_reg + i];
+                s_axi_rdata[i*8 +: 8] = mem[int'(r_addr_reg + i)];
             else
                 s_axi_rdata[i*8 +: 8] = 8'h00;
         end
@@ -141,7 +141,7 @@ module dummy_axi_memory #(
             end else if (s_axi_wvalid && s_axi_wready) begin
                 for (int i=0; i<(DATA_WIDTH/8); i++) begin
                     if ((w_addr_reg + i) < MEM_SIZE)
-                        mem[w_addr_reg + i] <= s_axi_wdata[i*8 +: 8];
+                        mem[int'(w_addr_reg + i)] <= s_axi_wdata[i*8 +: 8];
                 end
                 w_addr_reg <= w_addr_reg + (DATA_WIDTH/8);
             end
